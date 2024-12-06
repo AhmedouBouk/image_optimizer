@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-su*8v*7s@0%i=b)(9fr84%o20b689ktg$zicn2ngwi9dcw$+v&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'optimizer.apps.OptimizerConfig',
     'imagekit',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

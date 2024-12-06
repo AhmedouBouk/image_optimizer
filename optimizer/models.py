@@ -111,10 +111,10 @@ class OptimizedImage(models.Model):
     
     original_image = ProcessedImageField(
         upload_to='original_images/%Y/%m/%d/',
-        processors=[Transpose()],
+        processors=[Transpose(), ResizeToFit(2048, 2048)],
         format='JPEG',
-        options={'quality': 100},
-        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp'])]
+        options={'quality': 90},
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'])]
     )
     
     optimized_image = ProcessedImageField(
