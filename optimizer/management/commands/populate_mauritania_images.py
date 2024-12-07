@@ -22,6 +22,7 @@ class ImageData:
     url: str
     title: str
     description: str
+    is_local: bool = False
 
 class ImageProcessor:
     def __init__(self, max_size: int = 800, quality: int = 85):
@@ -32,25 +33,33 @@ class ImageProcessor:
             'Accept': 'image/webp,image/jpeg'
         }
 
-    def download_image(self, url: str, timeout: int = 5) -> Optional[bytes]:
-        """Download image from URL with timeout."""
-        try:
-            response = requests.get(
-                url,
-                headers=self.headers,
-                timeout=timeout,
-                stream=True
-            )
-            response.raise_for_status()
-            return response.content
-        except RequestException as e:
-            logger.error(f"Failed to download image from {url}: {str(e)}")
-            return None
+    def get_image_content(self, image_data: ImageData, timeout: int = 5) -> Optional[bytes]:
+        """Get image content from URL or local file."""
+        if image_data.is_local:
+            try:
+                with open(image_data.url, 'rb') as f:
+                    return f.read()
+            except Exception as e:
+                logger.error(f"Failed to read local image {image_data.url}: {str(e)}")
+                return None
+        else:
+            try:
+                response = requests.get(
+                    image_data.url,
+                    headers=self.headers,
+                    timeout=timeout,
+                    stream=True
+                )
+                response.raise_for_status()
+                return response.content
+            except RequestException as e:
+                logger.error(f"Failed to download image from {image_data.url}: {str(e)}")
+                return None
 
     def process_image(self, image_content: bytes) -> Optional[NamedTemporaryFile]:
         """Process image content and return a temporary file."""
         try:
-            img_temp = NamedTemporaryFile(delete=True)
+            img_temp = NamedTemporaryFile()
             img = Image.open(BytesIO(image_content))
 
             # Convert to RGB if necessary
@@ -63,7 +72,7 @@ class ImageProcessor:
 
             # Save optimized image
             img.save(img_temp, format='JPEG', quality=self.quality, optimize=True)
-            img_temp.flush()
+            img_temp.seek(0)
             return img_temp
         except Exception as e:
             logger.error(f"Failed to process image: {str(e)}")
@@ -81,19 +90,10 @@ class Command(BaseCommand):
         """Return list of image data."""
         return [
             ImageData(
-                url='https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Nouakchott_Fishing_Port.jpg/640px-Nouakchott_Fishing_Port.jpg',
-                title='Port de Pêche de Nouakchott',
-                description='Le port de pêche artisanale de Nouakchott'
-            ),
-            ImageData(
-                url='https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Mauritania_4432_Nouadhibou_Harbour_Luca_Galuzzi_2006.jpg/640px-Mauritania_4432_Nouadhibou_Harbour_Luca_Galuzzi_2006.jpg',
-                title='Port de Nouadhibou',
-                description='Vue panoramique du port de Nouadhibou'
-            ),
-            ImageData(
-                url='https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Nouadhibou_boats.jpg/640px-Nouadhibou_boats.jpg',
-                title='Bateaux de Pêche',
-                description='Bateaux de pêche traditionnels à Nouadhibou'
+                url='c:/Users/HP/OneDrive/Desktop/espirt/image_optimizer/media/sample_images/mauritania_landscape.jpg',
+                title='Paysage de Mauritanie',
+                description='Vue panoramique d\'un paysage mauritanien avec des chevaux sur une dune de sable au coucher du soleil',
+                is_local=True
             )
         ]
 
@@ -112,7 +112,7 @@ class Command(BaseCommand):
             logger.info("Created new compression strategy")
         return strategy
 
-    def _save_image(self, image_data: ImageData, temp_file: NamedTemporaryFile, strategy: CompressionStrategy) -> bool:
+    def _save_image(self, image_data: ImageData, strategy: CompressionStrategy) -> bool:
         """Save image to database."""
         try:
             filename = f"{image_data.title.lower().replace(' ', '_')}.jpg"
@@ -121,7 +121,11 @@ class Command(BaseCommand):
                 description=image_data.description,
                 compression_strategy=strategy
             )
-            image.original_image.save(filename, File(temp_file), save=True)
+            
+            # Open and process the image
+            with open(image_data.url, 'rb') as f:
+                image.original_image.save(filename, File(f), save=True)
+                
             logger.info(f'Successfully saved image: {image_data.title}')
             return True
         except Exception as e:
@@ -135,15 +139,7 @@ class Command(BaseCommand):
         total_images = len(self.images)
 
         for image_data in self.images:
-            image_content = self.image_processor.download_image(image_data.url)
-            if not image_content:
-                continue
-
-            temp_file = self.image_processor.process_image(image_content)
-            if not temp_file:
-                continue
-
-            if self._save_image(image_data, temp_file, strategy):
+            if self._save_image(image_data, strategy):
                 success_count += 1
 
         # Final status report
