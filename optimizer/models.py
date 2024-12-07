@@ -5,6 +5,9 @@ from imagekit.processors import ResizeToFit, Transpose, ResizeToFill, SmartResiz
 from django.utils.text import slugify
 from PIL import Image
 import os
+import io
+from django.core.files.base import ContentFile
+import uuid
 
 # Create your models here.
 
@@ -14,12 +17,21 @@ class CompressionStrategy(models.Model):
         ('lossy', 'Compression avec Perte Optimisée'),
         ('lossless', 'Compression sans Perte'),
         ('adaptive', 'Compression Adaptative'),
+        ('content_aware', 'Compression Adaptée au Contenu'),
     ]
 
     OUTPUT_FORMATS = [
         ('WEBP', 'WebP (Recommandé)'),
+        ('AVIF', 'AVIF (Nouvelle Génération)'),
         ('JPEG', 'JPEG'),
         ('PNG', 'PNG'),
+    ]
+
+    RESIZE_STRATEGIES = [
+        ('fit', 'Ajuster aux Dimensions'),
+        ('fill', 'Remplir les Dimensions'),
+        ('smart', 'Redimensionnement Intelligent'),
+        ('content_aware', 'Redimensionnement Adapté au Contenu'),
     ]
 
     name = models.CharField(max_length=100)
@@ -33,6 +45,11 @@ class CompressionStrategy(models.Model):
         max_length=10,
         choices=OUTPUT_FORMATS,
         default='WEBP'
+    )
+    resize_strategy = models.CharField(
+        max_length=20,
+        choices=RESIZE_STRATEGIES,
+        default='smart'
     )
     quality_factor = models.IntegerField(
         default=85,
@@ -56,6 +73,24 @@ class CompressionStrategy(models.Model):
         default=True,
         help_text="Optimisation automatique basée sur le contenu"
     )
+    generate_responsive = models.BooleanField(
+        default=True,
+        help_text="Générer des versions responsives"
+    )
+    responsive_sizes = models.CharField(
+        max_length=200,
+        default="320,768,1024,1920",
+        help_text="Tailles en pixels pour les images responsives (séparées par des virgules)"
+    )
+    enable_lazy_loading = models.BooleanField(
+        default=True,
+        help_text="Activer le chargement différé"
+    )
+    cache_control = models.CharField(
+        max_length=100,
+        default="public, max-age=31536000",
+        help_text="Directives de mise en cache du navigateur"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def get_processors(self):
@@ -69,6 +104,8 @@ class CompressionStrategy(models.Model):
             processors.append(SmartResize(self.max_dimensions, self.max_dimensions))
         elif self.algorithm in ['lossy', 'adaptive']:
             processors.append(ResizeToFit(self.max_dimensions, self.max_dimensions))
+        elif self.algorithm == 'content_aware':
+            processors.append(ResizeToFill(self.max_dimensions, self.max_dimensions))
         else:  # lossless
             processors.append(ResizeToFill(self.max_dimensions, self.max_dimensions))
         
@@ -87,6 +124,12 @@ class CompressionStrategy(models.Model):
                 'quality': self.quality_factor,
                 'progressive': self.progressive_loading
             })
+        elif self.output_format == 'AVIF':
+            options.update({
+                'quality': self.quality_factor,
+                'optimize': True,
+                'lossless': self.algorithm == 'lossless',
+            })
         elif self.output_format == 'JPEG':
             options.update({
                 'progressive': self.progressive_loading,
@@ -101,12 +144,18 @@ class CompressionStrategy(models.Model):
             
         return options
 
+    def get_responsive_sizes(self):
+        """Return responsive sizes as a list of integers"""
+        if not self.responsive_sizes:
+            return []
+        return [int(size.strip()) for size in self.responsive_sizes.split(',') if size.strip()]
+
     def __str__(self):
         return f"{self.name} ({self.get_algorithm_display()})"
 
 class OptimizedImage(models.Model):
     title = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, blank=True)
+    slug = models.SlugField(max_length=200, unique=True, blank=True)
     description = models.TextField(blank=True)
     
     original_image = ProcessedImageField(
@@ -148,8 +197,16 @@ class OptimizedImage(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
-            
+            # Generate slug from title
+            base_slug = slugify(self.title)
+            unique_slug = base_slug
+            counter = 1
+            # Ensure unique slug
+            while OptimizedImage.objects.filter(slug=unique_slug).exists():
+                unique_slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = unique_slug
+
         if self.original_image:
             # Enregistrer la taille originale
             self.original_size = self.original_image.size
@@ -181,10 +238,67 @@ class OptimizedImage(models.Model):
 
 class PerformanceMetric(models.Model):
     image = models.ForeignKey(OptimizedImage, on_delete=models.CASCADE)
-    load_time_original = models.FloatField()
-    load_time_optimized = models.FloatField()
-    bandwidth_saved = models.IntegerField()
+    
+    # Temps de chargement
+    load_time_original = models.FloatField(
+        help_text="Temps de chargement de l'image originale (en secondes)"
+    )
+    load_time_optimized = models.FloatField(
+        help_text="Temps de chargement de l'image optimisée (en secondes)"
+    )
+    
+    # Métriques de taille et bande passante
+    bandwidth_saved = models.IntegerField(
+        help_text="Bande passante économisée (en bytes)"
+    )
+    size_reduction_percentage = models.FloatField(
+        default=0,
+        help_text="Pourcentage de réduction de la taille"
+    )
+    
+    # Métriques de qualité
+    ssim_score = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Score SSIM (Structural Similarity Index)"
+    )
+    psnr_score = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Peak Signal-to-Noise Ratio"
+    )
+    
+    # Métriques de performance web
+    first_byte_time = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Time to First Byte (TTFB) en secondes"
+    )
+    dom_interactive_time = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Temps jusqu'à DOM Interactive (en secondes)"
+    )
+    
+    # Métriques utilisateur
+    perceived_loading_speed = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Vitesse de chargement perçue (score de 1 à 10)"
+    )
+    
+    # Métriques de cache
+    cache_hit_rate = models.FloatField(
+        default=0,
+        help_text="Taux de succès du cache (%)"
+    )
+    
     measured_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"Metrics for {self.image.title}"
+        return f"Metrics for {self.image.title} at {self.measured_at}"
+    
+    class Meta:
+        ordering = ['-measured_at']
+        verbose_name = "Métrique de Performance"
+        verbose_name_plural = "Métriques de Performance"

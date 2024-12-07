@@ -1,64 +1,305 @@
 {% extends 'optimizer/base.html' %}
+{% load static %}
+{% load optimizer_filters %}
 
 {% block title %}{{ image.title }} - Détails{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"/>
+<style>
+    @media (max-width: 640px) {
+        .mobile-full-width {
+            margin-left: -1rem;
+            margin-right: -1rem;
+            border-radius: 0;
+        }
+        .mobile-stack {
+            flex-direction: column;
+        }
+        .mobile-stack > * {
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        .mobile-stack > *:last-child {
+            margin-bottom: 0;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-            <!-- Image Preview -->
-            <div>
-                <h2 class="text-2xl font-bold mb-4">{{ image.title }}</h2>
-                <div class="relative">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <nav class="mb-4 sm:mb-8">
+        <a href="{% url 'image-list' %}" class="text-blue-600 hover:text-blue-800 flex items-center text-sm sm:text-base">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Retour à la liste
+        </a>
+    </nav>
+
+    <!-- Image Header -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-4 sm:mb-8">
+        <div class="p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">{{ image.title }}</h1>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                    <a href="{{ image.optimized_image.url }}" 
+                       class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                       download="{{ image.title }}_optimized.{{ image.optimized_image.name|slice:'-4:'|slice:'1:' }}">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Télécharger l'Image Optimisée
+                    </a>
+                    <a href="{{ image.original_image.url }}" 
+                       class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                       download="{{ image.title }}_original.{{ image.original_image.name|slice:'-4:'|slice:'1:' }}">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Télécharger l'Original
+                    </a>
+                </div>
+            </div>
+            <p class="mt-2 text-gray-600 text-sm sm:text-base">{{ image.description }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
+        <!-- Image Preview Column -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden mobile-full-width">
+                <div class="relative group">
                     <img src="{{ image.get_image_url }}" 
                          alt="{{ image.title }}"
-                         class="w-full rounded-lg shadow-md">
-                    <div class="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
-                        {{ image.compression_ratio|floatformat:1 }}% compression
+                         class="w-full h-auto object-cover"
+                         data-fancybox="comparison"
+                         data-caption="Version optimisée">
+                    
+                    <!-- Image Comparison Slider -->
+                    <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button onclick="toggleComparison()" class="px-4 py-2 bg-white rounded-md shadow text-sm font-medium transform hover:scale-105 transition-transform">
+                            Comparer Original/Optimisé
+                        </button>
+                    </div>
+
+                    <!-- Compression Badge -->
+                    <div class="absolute top-4 right-4 bg-black bg-opacity-75 text-white px-3 py-1.5 rounded-full text-sm">
+                        <div class="font-semibold">{{ image.compression_ratio|floatformat:1 }}% compression</div>
+                        <div class="text-xs">{{ image.compressed_size|filesizeformat }} / {{ image.original_size|filesizeformat }}</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Stats and Info -->
-            <div class="space-y-6">
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">Informations</h3>
-                    <p class="text-gray-600">{{ image.description }}</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="text-sm font-medium text-gray-500">Taille Originale</h4>
-                        <p class="text-lg font-semibold">{{ image.original_size|filesizeformat }}</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="text-sm font-medium text-gray-500">Taille Optimisée</h4>
-                        <p class="text-lg font-semibold">{{ image.compressed_size|filesizeformat }}</p>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">Performances</h3>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <canvas id="performanceChart"></canvas>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">Stratégie de Compression</h3>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="font-medium">{{ image.compression_strategy.name }}</p>
-                        <p class="text-gray-600 text-sm mt-1">{{ image.compression_strategy.description }}</p>
-                        <div class="mt-2 grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                                <span class="text-gray-500">Facteur de qualité:</span>
-                                <span class="font-medium">{{ image.compression_strategy.quality_factor }}%</span>
-                            </div>
-                            <div>
-                                <span class="text-gray-500">Format WebP:</span>
-                                <span class="font-medium">{% if image.compression_strategy.webp_enabled %}Activé{% else %}Désactivé{% endif %}</span>
+            <!-- Performance Metrics -->
+            <div class="mt-4 sm:mt-8 bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-4 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-bold mb-4">Métriques de Performance</h2>
+                    
+                    <!-- Load Time Comparison -->
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-base font-medium text-gray-900 mb-3">Temps de Chargement</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-red-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-red-800">Original</div>
+                                    <div class="mt-1 text-2xl font-semibold text-red-900">
+                                        {{ image.original_size|size_to_load_time }}s
+                                    </div>
+                                    <div class="text-xs text-red-600 mt-1">
+                                        Taille: {{ image.original_size|format_size }}
+                                    </div>
+                                </div>
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-green-800">Optimisé</div>
+                                    <div class="mt-1 text-2xl font-semibold text-green-900">
+                                        {{ image.compressed_size|size_to_load_time }}s
+                                    </div>
+                                    <div class="text-xs text-green-600 mt-1">
+                                        Taille: {{ image.compressed_size|format_size }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Quality Metrics -->
+                        <div>
+                            <h3 class="text-base font-medium text-gray-900 mb-3">Métriques de Qualité</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-blue-800">Score SSIM</div>
+                                    <div class="mt-1 text-xl font-semibold text-blue-900">
+                                        {{ metrics.ssim_score|default:0|floatformat:3 }}
+                                    </div>
+                                    <div class="text-xs text-blue-600 mt-1">Similarité structurelle</div>
+                                </div>
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-blue-800">PSNR</div>
+                                    <div class="mt-1 text-xl font-semibold text-blue-900">
+                                        {{ metrics.psnr_score|default:0|floatformat:1 }} dB
+                                    </div>
+                                    <div class="text-xs text-blue-600 mt-1">Rapport signal/bruit</div>
+                                </div>
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-blue-800">Compression</div>
+                                    <div class="mt-1 text-xl font-semibold text-blue-900">
+                                        {{ image.compression_ratio|floatformat:1 }}%
+                                    </div>
+                                    <div class="text-xs text-blue-600 mt-1">Taux de compression</div>
+                                </div>
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-blue-800">Vitesse</div>
+                                    <div class="mt-1 text-xl font-semibold text-blue-900">
+                                        {{ metrics.perceived_loading_speed|default:0|floatformat:1 }}/10
+                                    </div>
+                                    <div class="text-xs text-blue-600 mt-1">Vitesse perçue</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Metrics -->
+                        <div>
+                            <h3 class="text-base font-medium text-gray-900 mb-3">Métriques Supplémentaires</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-gray-800">TTFB</div>
+                                    <div class="mt-1 text-xl font-semibold text-gray-900">
+                                        {{ metrics.first_byte_time|default:"N/A" }}s
+                                    </div>
+                                    <div class="text-xs text-gray-600 mt-1">Premier octet</div>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-gray-800">Cache Hit</div>
+                                    <div class="mt-1 text-xl font-semibold text-gray-900">
+                                        {{ metrics.cache_hit_rate|default:"0" }}%
+                                    </div>
+                                    <div class="text-xs text-gray-600 mt-1">Taux de cache</div>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-gray-800">Taille Originale</div>
+                                    <div class="mt-1 text-xl font-semibold text-gray-900">
+                                        {{ image.original_size|filesizeformat }}
+                                    </div>
+                                    <div class="text-xs text-gray-600 mt-1">Avant optimisation</div>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <div class="text-sm font-medium text-gray-800">Taille Finale</div>
+                                    <div class="mt-1 text-xl font-semibold text-gray-900">
+                                        {{ image.compressed_size|filesizeformat }}
+                                    </div>
+                                    <div class="text-xs text-gray-600 mt-1">Après optimisation</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-4 sm:space-y-8">
+            <!-- Compression Strategy -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-4 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-bold mb-4">Stratégie de Compression</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="font-semibold text-gray-900">{{ image.compression_strategy.name }}</h3>
+                            <p class="text-sm text-gray-600">{{ image.compression_strategy.description }}</p>
+                        </div>
+                        
+                        <div class="border-t pt-4">
+                            <h4 class="text-sm font-medium text-gray-500 mb-2">Paramètres</h4>
+                            <dl class="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-sm">
+                                <dt class="text-gray-500">Algorithme</dt>
+                                <dd class="font-medium">{{ image.compression_strategy.get_algorithm_display }}</dd>
+                                
+                                <dt class="text-gray-500">Format</dt>
+                                <dd class="font-medium">{{ image.compression_strategy.get_output_format_display }}</dd>
+                                
+                                <dt class="text-gray-500">Qualité</dt>
+                                <dd class="font-medium">{{ image.compression_strategy.quality_factor }}%</dd>
+                                
+                                <dt class="text-gray-500">Dim. Max</dt>
+                                <dd class="font-medium">{{ image.compression_strategy.max_dimensions }}px</dd>
+                                
+                                <dt class="text-gray-500">Redimensionnement</dt>
+                                <dd class="font-medium">{{ image.compression_strategy.get_resize_strategy_display }}</dd>
+                            </dl>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <h4 class="text-sm font-medium text-gray-500 mb-2">Options Avancées</h4>
+                            <ul class="space-y-2">
+                                <li class="flex items-center">
+                                    <svg class="w-4 h-4 {% if image.compression_strategy.progressive_loading %}text-green-500{% else %}text-gray-400{% endif %} mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span class="text-sm">Chargement Progressif</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-4 h-4 {% if image.compression_strategy.preserve_metadata %}text-green-500{% else %}text-gray-400{% endif %} mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span class="text-sm">Préservation Métadonnées</span>
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-4 h-4 {% if image.compression_strategy.generate_responsive %}text-green-500{% else %}text-gray-400{% endif %} mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    <span class="text-sm">Images Responsives</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Details -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-4 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-bold mb-4">Détails Techniques</h2>
+                    <dl class="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-sm">
+                        <dt class="text-gray-500">Dimensions</dt>
+                        <dd class="font-medium">{{ image.width }}x{{ image.height }}px</dd>
+                        
+                        <dt class="text-gray-500">Format</dt>
+                        <dd class="font-medium">{{ image.format }}</dd>
+                        
+                        <dt class="text-gray-500">Mode Couleur</dt>
+                        <dd class="font-medium">{{ image.color_mode }}</dd>
+                        
+                        <dt class="text-gray-500">DPI</dt>
+                        <dd class="font-medium">{{ image.dpi }}</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Download Options -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-4 sm:p-6">
+                    <h2 class="text-lg sm:text-xl font-bold mb-4">Téléchargement</h2>
+                    <div class="space-y-4">
+                        {% if image.compression_strategy.responsive_sizes %}
+                            <div class="mt-4">
+                                <h3 class="text-base font-medium text-gray-900 mb-3">Versions Responsives</h3>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    {% with sizes=image.compression_strategy.get_responsive_sizes %}
+                                        {% for size in sizes %}
+                                            <a href="{% url 'download-responsive' pk=image.pk %}?size={{ size }}"
+                                               class="px-3 py-2 bg-white hover:bg-gray-50 border rounded-lg text-sm flex items-center justify-between group"
+                                               download="{{ image.title }}_{{ size }}px.{{ image.optimized_image.name|slice:'-4:'|slice:'1:' }}">
+                                                <span class="text-gray-900">{{ size }}px</span>
+                                                <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                </svg>
+                                            </a>
+                                        {% endfor %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -68,35 +309,52 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('performanceChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Temps de Chargement Original', 'Temps de Chargement Optimisé'],
-            datasets: [{
-                label: 'Temps de Chargement (secondes)',
-                data: [{{ metrics.load_time_original }}, {{ metrics.load_time_optimized }}],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
-                    'rgba(75, 192, 192, 0.2)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(75, 192, 192, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
+    // Initialize FancyBox
+    Fancybox.bind("[data-fancybox]", {
+        // Custom options
+    });
+
+    function toggleComparison() {
+        Fancybox.show([
+            {
+                src: "{{ image.original_image.url }}",
+                caption: "Image Originale"
+            },
+            {
+                src: "{{ image.get_image_url }}",
+                caption: "Image Optimisée"
             }
-        }
+        ]);
+    }
+
+    // Handle download clicks for responsive images
+    document.querySelectorAll('a[href*="download-responsive"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('href');
+            const filename = this.getAttribute('download');
+            
+            fetch(url)
+                .then(response => response.blob())
+                .then(blob => {
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(blobUrl);
+                    document.body.removeChild(a);
+                })
+                .catch(error => {
+                    console.error('Download failed:', error);
+                    alert('Le téléchargement a échoué. Veuillez réessayer.');
+                });
+        });
     });
 });
 </script>

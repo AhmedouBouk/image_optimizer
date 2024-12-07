@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.urls import reverse_lazy
 from django.db.models import Avg, Sum, Count
 from django.utils.decorators import method_decorator
@@ -66,6 +66,30 @@ class ImageDetailView(DetailView):
     model = OptimizedImage
     template_name = 'optimizer/image_detail.html'
     context_object_name = 'image'
+    query_pk_and_slug = True  # This enables both pk and slug lookups
+
+    def get_object(self, queryset=None):
+        """Get the object based on either slug or pk"""
+        if queryset is None:
+            queryset = self.get_queryset()
+
+        # Try getting by slug first
+        slug = self.kwargs.get('slug')
+        if slug:
+            slug_field = self.get_slug_field()
+            queryset = queryset.filter(**{slug_field: slug})
+        else:
+            # If no slug, try pk
+            pk = self.kwargs.get(self.pk_url_kwarg)
+            if pk is not None:
+                queryset = queryset.filter(pk=pk)
+
+        try:
+            obj = queryset.get()
+        except queryset.model.DoesNotExist:
+            raise Http404("No image found matching the query")
+
+        return obj
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -314,3 +338,80 @@ def measure_load_time(request):
         'compression_ratio': image.compression_ratio,
         'bandwidth_saved': metric.bandwidth_saved
     })
+
+@require_http_methods(["GET"])
+def download_responsive_image(request, pk):
+    image = get_object_or_404(OptimizedImage, pk=pk)
+    
+    # Check if compression strategy exists
+    if not image.compression_strategy or not image.compression_strategy.generate_responsive:
+        return HttpResponseBadRequest("Images responsives non activées pour cette image")
+    
+    size = request.GET.get('size')
+    try:
+        size = int(size)
+    except (TypeError, ValueError):
+        return HttpResponseBadRequest("Taille invalide")
+    
+    # Vérifier que la taille est valide
+    allowed_sizes = image.compression_strategy.get_responsive_sizes()
+    if size not in allowed_sizes:
+        return HttpResponseBadRequest("Taille non autorisée")
+    
+    # Générer l'image redimensionnée
+    try:
+        img = Image.open(image.original_image.path)
+        
+        # Calculer les nouvelles dimensions en conservant le ratio
+        ratio = img.width / img.height
+        if img.width > img.height:
+            new_width = size
+            new_height = int(size / ratio)
+        else:
+            new_height = size
+            new_width = int(size * ratio)
+        
+        # Redimensionner l'image
+        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        # Créer un buffer pour l'image
+        buffer = io.BytesIO()
+        
+        # Sauvegarder l'image dans le format approprié
+        format_map = {
+            'WEBP': 'WebP',
+            'JPEG': 'JPEG',
+            'PNG': 'PNG',
+            'AVIF': 'AVIF'
+        }
+        
+        save_format = format_map.get(image.compression_strategy.output_format, 'JPEG')
+        save_options = {
+            'quality': image.compression_strategy.quality_factor,
+            'optimize': True
+        }
+        
+        if save_format == 'WebP':
+            save_options['method'] = 6  # Meilleure compression
+            if image.compression_strategy.progressive_loading:
+                save_options['lossless'] = False
+        elif save_format == 'JPEG':
+            if image.compression_strategy.progressive_loading:
+                save_options['progressive'] = True
+        
+        img.save(buffer, format=save_format, **save_options)
+        buffer.seek(0)
+        
+        # Préparer la réponse
+        response = HttpResponse(buffer, content_type=f'image/{save_format.lower()}')
+        filename = f"{image.title}_{size}px.{save_format.lower()}"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        # Ajouter les en-têtes de cache si spécifiés
+        if image.compression_strategy.cache_control:
+            response['Cache-Control'] = image.compression_strategy.cache_control
+        
+        return response
+        
+    except (IOError, OSError) as e:
+        return HttpResponseServerError(f"Erreur lors du traitement de l'image: {str(e)}")
