@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, TemplateView
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.urls import reverse_lazy
@@ -297,6 +297,9 @@ class ImageUploadView(CreateView):
         edge_pixels = sum(1 for pixel in edges.getdata() if pixel > 128)
         # Un grand nombre de bords peut indiquer la présence de texte
         return edge_pixels > (img.width * img.height * 0.1)
+
+class DocumentationView(TemplateView):
+    template_name = 'optimizer/documentation.html'
 
 @require_http_methods(['GET'])
 def get_optimization_stats(request):

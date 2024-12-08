@@ -1,0 +1,181 @@
+{% extends 'optimizer/base.html' %}
+{% load static %}
+
+{% block title %}Documentation - ImageOptimizer{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl shadow-2xl mb-12 p-8 text-white">
+        <h1 class="text-4xl font-bold mb-4">Documentation ImageOptimizer</h1>
+        <p class="text-xl opacity-90">Une solution innovante pour l'optimisation d'images sur le web</p>
+    </div>
+
+    <!-- Navigation rapide -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Navigation Rapide</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="#algorithmes" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <h3 class="font-semibold text-indigo-600">Algorithmes</h3>
+                <p class="text-gray-600">Découvrez nos stratégies de compression</p>
+            </a>
+            <a href="#performances" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <h3 class="font-semibold text-indigo-600">Performances</h3>
+                <p class="text-gray-600">Analyses et métriques détaillées</p>
+            </a>
+            <a href="#utilisation" class="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <h3 class="font-semibold text-indigo-600">Utilisation</h3>
+                <p class="text-gray-600">Guide pas à pas</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Algorithmes Section -->
+    <section id="algorithmes" class="mb-12">
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-3xl font-bold mb-6 text-indigo-700">Nos Algorithmes</h2>
+            
+            <div class="space-y-8">
+                <!-- Compression Intelligente -->
+                <div class="border-l-4 border-indigo-500 pl-4">
+                    <h3 class="text-xl font-semibold mb-3">Compression Intelligente 🧠</h3>
+                    <p class="text-gray-600 mb-4">Notre algorithme phare qui analyse automatiquement le contenu de vos images pour appliquer la meilleure stratégie de compression.</p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li>Analyse du contenu visuel</li>
+                        <li>Adaptation dynamique des paramètres</li>
+                        <li>Préservation intelligente des détails</li>
+                    </ul>
+                </div>
+
+                <!-- Compression Adaptative -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold mb-3">Compression Adaptative 🎯</h3>
+                    <p class="text-gray-600 mb-4">Un système qui s'adapte en temps réel aux caractéristiques de chaque image.</p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li>Optimisation progressive</li>
+                        <li>Équilibre qualité/taille</li>
+                        <li>Support multi-formats (WebP, AVIF)</li>
+                    </ul>
+                </div>
+
+                <!-- Compression Contextuelle -->
+                <div class="border-l-4 border-purple-500 pl-4">
+                    <h3 class="text-xl font-semibold mb-3">Compression Contextuelle 🎨</h3>
+                    <p class="text-gray-600 mb-4">Une approche sophistiquée qui prend en compte le contexte d'utilisation de l'image.</p>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li>Détection des zones importantes</li>
+                        <li>Optimisation sélective</li>
+                        <li>Préservation du contenu critique</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performances Section -->
+    <section id="performances" class="mb-12">
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-3xl font-bold mb-6 text-indigo-700">Performances</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-blue-50 p-6 rounded-lg">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">40-80%</div>
+                    <div class="text-gray-700">Réduction moyenne de la taille des fichiers</div>
+                </div>
+                <div class="bg-green-50 p-6 rounded-lg">
+                    <div class="text-3xl font-bold text-green-600 mb-2">50-70%</div>
+                    <div class="text-gray-700">Amélioration du temps de chargement</div>
+                </div>
+                <div class="bg-purple-50 p-6 rounded-lg">
+                    <div class="text-3xl font-bold text-purple-600 mb-2">>90%</div>
+                    <div class="text-gray-700">Préservation de la qualité visuelle</div>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-4">Métriques de Performance</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h4 class="font-semibold text-lg mb-3">Métriques Techniques</h4>
+                    <ul class="space-y-2 text-gray-700">
+                        <li>• Score SSIM (Structural Similarity Index)</li>
+                        <li>• PSNR (Peak Signal-to-Noise Ratio)</li>
+                        <li>• Taux de compression</li>
+                        <li>• Temps de chargement</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h4 class="font-semibold text-lg mb-3">Métriques Utilisateur</h4>
+                    <ul class="space-y-2 text-gray-700">
+                        <li>• Satisfaction visuelle</li>
+                        <li>• Vitesse perçue</li>
+                        <li>• Économie de bande passante</li>
+                        <li>• Compatibilité navigateur</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Guide d'Utilisation -->
+    <section id="utilisation" class="mb-12">
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-3xl font-bold mb-6 text-indigo-700">Guide d'Utilisation</h2>
+            
+            <div class="space-y-6">
+                <div class="flex items-start space-x-4">
+                    <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">1</div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Téléchargement</h3>
+                        <p class="text-gray-600">Utilisez le bouton "Upload Image" pour sélectionner et télécharger vos images.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-4">
+                    <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">2</div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Configuration</h3>
+                        <p class="text-gray-600">Choisissez votre stratégie d'optimisation préférée et ajustez les paramètres si nécessaire.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-4">
+                    <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">3</div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Optimisation</h3>
+                        <p class="text-gray-600">Notre système traite automatiquement votre image avec les paramètres sélectionnés.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-4">
+                    <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">4</div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Résultats</h3>
+                        <p class="text-gray-600">Visualisez et comparez les résultats, avec des métriques détaillées sur les performances.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-2xl p-8 text-white text-center">
+        <h2 class="text-3xl font-bold mb-4">Prêt à Optimiser vos Images ?</h2>
+        <p class="text-xl mb-6 opacity-90">Commencez dès maintenant à améliorer les performances de votre site web</p>
+        <a href="{% url 'image-upload' %}" class="inline-block bg-white text-indigo-600 py-3 px-8 rounded-lg font-semibold hover:bg-gray-100 transition">
+            Commencer
+        </a>
+    </div>
+</div>
+
+<!-- Smooth Scroll -->
+<script>
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+});
+</script>
+{% endblock %}

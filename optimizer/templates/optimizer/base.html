@@ -10,16 +10,41 @@
 <body class="bg-gray-100">
     <nav class="bg-white shadow-lg">
         <div class="max-w-6xl mx-auto px-4">
-            <div class="flex justify-between">
-                <div class="flex space-x-7">
-                    <div>
-                        <a href="{% url 'image-list' %}" class="flex items-center py-4 px-2">
-                            <span class="font-semibold text-gray-500 text-lg">ImageOptimizer</span>
-                        </a>
-                    </div>
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="{% url 'image-list' %}" class="flex items-center">
+                        <span class="font-semibold text-gray-500 text-lg">ImageOptimizer</span>
+                    </a>
                 </div>
-                <div class="flex items-center space-x-3">
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="{% url 'documentation' %}" class="py-2 px-4 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition duration-300">
+                        Documentation
+                    </a>
                     <a href="{% url 'image-upload' %}" class="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300">
+                        Upload Image
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-gray-500 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden pb-4">
+                <div class="flex flex-col space-y-3">
+                    <a href="{% url 'documentation' %}" class="block py-2 px-4 text-center bg-indigo-500 text-white rounded hover:bg-indigo-600 transition duration-300">
+                        Documentation
+                    </a>
+                    <a href="{% url 'image-upload' %}" class="block py-2 px-4 text-center bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300">
                         Upload Image
                     </a>
                 </div>
@@ -44,10 +69,35 @@
 
     <footer class="bg-white shadow-lg mt-8">
         <div class="container mx-auto px-4 py-6">
-            <p class="text-center text-gray-600">© 2024 ImageOptimizer - Solution d'optimisation d'images avancée</p>
+            <p class="text-center text-gray-600"> 2024 ImageOptimizer - Solution d'optimisation d'images avance</p>
         </div>
     </footer>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Mobile Menu Toggle Script -->
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            
+            if (!mobileMenuButton.contains(event.target) && !mobileMenu.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+
+        // Close mobile menu when window is resized to desktop view
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) { // 768px is the md breakpoint in Tailwind
+                document.getElementById('mobile-menu').classList.add('hidden');
+            }
+        });
+    </script>
 </body>
 </html>

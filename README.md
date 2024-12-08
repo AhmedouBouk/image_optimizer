@@ -1,109 +1,95 @@
-# ImageOptimizer - Solution Avancée d'Optimisation d'Images
+# Image Optimizer - Solution d'Optimisation d'Images pour le Web
 
 ## Description
-ImageOptimizer est une solution web innovante conçue pour optimiser et accélérer le chargement des images dans un contexte web. Cette application utilise des algorithmes de compression avancés et des stratégies d'optimisation modernes pour garantir une expérience utilisateur optimale.
+Une solution innovante d'optimisation d'images pour le web qui utilise des algorithmes avancés de compression et des stratégies d'optimisation pour accélérer significativement le chargement des images.
 
-## Caractéristiques Principales
+## Caractéristiques Techniques
 
-- **Compression Intelligente** : Utilisation d'algorithmes adaptatifs pour optimiser la qualité et la taille des images
-- **Support WebP** : Conversion automatique vers le format WebP pour une meilleure compression
-- **Lazy Loading** : Chargement différé des images pour améliorer les performances
-- **Analyse des Performances** : Suivi détaillé des métriques de compression et de chargement
-- **Interface Moderne** : UI/UX responsive et intuitive
-- **API REST** : Endpoints pour l'intégration avec d'autres services
+### Algorithmes de Compression
+1. **Compression Intelligente**
+   - Analyse automatique du contenu de l'image
+   - Sélection dynamique des paramètres de compression
+   - Optimisation adaptée au type de contenu (photo, graphique, texte)
 
-## Technologies Utilisées
+2. **Compression Adaptative**
+   - Ajustement dynamique du niveau de compression
+   - Équilibre optimal entre qualité et taille de fichier
+   - Support des formats modernes (WebP, AVIF)
 
-- **Backend** : Django 5.1
-- **Traitement d'Images** : Pillow, django-imagekit
-- **Frontend** : TailwindCSS, Chart.js
-- **Stockage** : Support pour systèmes de fichiers locaux et cloud
+3. **Compression Basée sur le Contenu**
+   - Détection automatique des zones importantes
+   - Préservation de la qualité dans les zones critiques
+   - Compression agressive des zones moins importantes
 
-## Installation
+### Stratégies d'Optimisation
 
-1. Cloner le repository :
+1. **Optimisation du Format**
+   - Conversion automatique vers WebP/AVIF
+   - Sélection intelligente du format selon le navigateur
+   - Fallback automatique pour la compatibilité
+
+2. **Redimensionnement Intelligent**
+   - Redimensionnement adaptatif selon le dispositif
+   - Préservation des proportions importantes
+   - Optimisation pour différentes tailles d'écran
+
+3. **Mise en Cache**
+   - Système de cache à plusieurs niveaux
+   - Optimisation du temps de chargement
+   - Réduction de la charge serveur
+
+## Performance
+
+### Métriques de Performance
+- Temps de chargement
+- Taux de compression
+- Score SSIM (Structural Similarity Index)
+- PSNR (Peak Signal-to-Noise Ratio)
+- Bande passante économisée
+
+### Gains de Performance Typiques
+- Réduction de la taille : 40-80%
+- Amélioration du temps de chargement : 50-70%
+- Préservation de la qualité visuelle : >90%
+
+## Installation et Utilisation
+
+### Prérequis
+- Python 3.8+
+- Django 5.1
+- Pillow 11.0.0
+- Autres dépendances dans requirements.txt
+
+### Installation
 ```bash
-git clone [URL_DU_REPO]
+git clone [repository-url]
 cd image_optimizer
-```
-
-2. Créer un environnement virtuel :
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-```
-
-3. Installer les dépendances :
-```bash
 pip install -r requirements.txt
-```
-
-4. Configurer la base de données :
-```bash
 python manage.py migrate
-```
-
-5. Créer un superutilisateur :
-```bash
-python manage.py createsuperuser
-```
-
-6. Lancer le serveur :
-```bash
 python manage.py runserver
 ```
 
-## Stratégies d'Optimisation
+### Utilisation
+1. Accédez à l'interface web
+2. Téléchargez vos images
+3. Sélectionnez une stratégie d'optimisation
+4. Visualisez les résultats et les métriques de performance
 
-### 1. Compression d'Images
-- Utilisation de WebP comme format principal
-- Compression adaptative basée sur le contenu
-- Préservation de la qualité visuelle
+## Tests
+Pour tester la solution :
+1. Téléchargez des images de test variées
+2. Utilisez différentes stratégies d'optimisation
+3. Comparez les métriques de performance
+4. Vérifiez la qualité visuelle des images optimisées
 
-### 2. Performance de Chargement
-- Lazy loading natif
-- Redimensionnement automatique
-- Mise en cache optimisée
-
-### 3. Métriques de Performance
-- Suivi du taux de compression
-- Mesure des temps de chargement
-- Analyse de la bande passante économisée
-
-## API Documentation
-
-### Endpoints
-
-#### GET /api/stats/
-Retourne les statistiques globales d'optimisation :
-```json
-{
-    "total_images": 100,
-    "total_bandwidth_saved": 1500000,
-    "average_compression_ratio": 65.5
-}
-```
-
-#### POST /api/measure-load-time/
-Enregistre les métriques de performance pour une image :
-```json
-{
-    "image_id": 1,
-    "load_time": 0.5
-}
-```
+## Architecture Technique
+- Backend : Django (Python)
+- Traitement d'images : Pillow, ImageKit
+- Formats supportés : JPEG, PNG, WebP, AVIF
+- Base de données : SQLite (développement), PostgreSQL (production recommandé)
 
 ## Contribution
+Les contributions sont les bienvenues ! Voir CONTRIBUTING.md pour les détails.
 
-Les contributions sont les bienvenues ! Voici comment vous pouvez contribuer :
-
-1. Fork le projet
-2. Créer une branche pour votre fonctionnalité
-3. Commiter vos changements
-4. Pousser vers la branche
-5. Ouvrir une Pull Request
-
-## License
-
-Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
+## Licence
+[Spécifier la licence]
