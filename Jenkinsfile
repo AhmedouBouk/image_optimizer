@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/TON-UTILISATEUR/TON-REPO.git'
+git credentialsId: 'github-token', url: 'https://github.com/AhmedouBouk/image_optimizer.git'
             }
         }
 
