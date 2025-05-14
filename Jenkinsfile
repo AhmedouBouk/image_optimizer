@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-git credentialsId: 'github-token', url: 'https://github.com/AhmedouBouk/image_optimizer.git'
+        echo "Le code est déjà extrait par Jenkins."
             }
         }
 
