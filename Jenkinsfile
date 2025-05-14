@@ -13,11 +13,11 @@ pipeline {
             }
         }
 
-        stage('Install Ansible') {
-            steps {
-                sh 'apt-get update && apt-get install -y ansible'
-            }
-        }
+     stage('Install Ansible') {
+    steps {
+        echo "Ansible déjà installé dans le conteneur Jenkins."
+    }
+}
 
         stage('Run Ansible Playbook') {
             steps {
