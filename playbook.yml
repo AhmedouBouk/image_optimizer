@@ -1,0 +1,17 @@
+- name: Déploiement de Nginx
+  hosts: web
+  become: true
+  tasks:
+    - name: Mise à jour des paquets
+      apt:
+        update_cache: yes
+
+    - name: Installer Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Créer une page index personnalisée
+      copy:
+        dest: /var/www/html/index.html
+        content: "<h1>Déploiement réussi via Ansible</h1>"
